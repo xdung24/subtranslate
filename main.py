@@ -1,26 +1,36 @@
 from googletrans import Translator
+import argparse
 import time
-from random import random
 
-translator = Translator()
-filename = 'Black.Adam.2022.1080p.WEB-DL.DDP5.1.Atmos.H.264-EVO-HI'
-orig = 'en'  # Dutch
-tran = 'vi'  # English
-sin = open(filename + '_' + orig + '.srt', 'r')
-sout = open(filename + '_' + tran + '.srt', 'w')
 
 # maximum number of characters on 1 line:
 mcl = 60
 
-"""
-BEGIN
-"""
+parser = argparse.ArgumentParser()
+parser.add_argument('--src-lang', type=str, required=True)
+parser.add_argument('--des-lang', type=str, required=True)
+parser.add_argument('--input-srt', type=str, required=True)
+parser.add_argument('--output-srt', type=str, required=True)
+args = parser.parse_args()
+
+print('--------------------------------')
+print('Source language:', args.src_lang)
+print('Target language:', args.des_lang)
+print('Input srt file:', args.input_srt)
+print('Output srt file:', args.output_srt)
+
+translator = Translator()
+orig = args.src_lang
+tran = args.des_lang
+sin = open(args.input_srt, 'r')
+sout = open(args.output_srt, 'w')
+
 sin = (sin.read()).splitlines()
 lindex = []
 
 # make list of line indexes that contain the timing of a new subtitle entry
 for l in range(len(sin)):
-    if sin[l][:3] == '00:' or sin[l][:3] == '01:': lindex.append(l)
+    if sin[l][:3] == '00:' or sin[l][:3] == '01:' : lindex.append(l)
 lindex.append(-1)
 
 # compose out document with translation
@@ -33,10 +43,10 @@ for i in range(len(lindex) - 1):
     for l in range((s + 1), (n - 1)):
         sub += sin[l] + ' '
     # translate + time delay
-    print(sub)
     translated_sub = translator.translate(sub, src=orig, dest=tran).text
-    print(translated_sub)
-    time.sleep(random() * 2 + 1)  # else Google detects the bot and throws an error
+    time.sleep(1)
+    print("[", i+1, "/", len(lindex), "] ", sub, " => ", translated_sub)
+
     # place line breaks
     istart, iend = 0, 0
     for b in range(len(translated_sub) // mcl + 1):
